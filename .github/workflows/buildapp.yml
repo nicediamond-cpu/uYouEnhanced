@@ -192,16 +192,16 @@ jobs:
         id: build_package
         run: |
           cd main
-          sed -i '' '/^export TARGET/d' Makefile || true
-          echo "export TARGET = iphone:clang:${{ inputs.sdk_version }}:15.0" >> Makefile
-          make package THEOS_PACKAGE_SCHEME=rootless IPA=Payload/YouTube.app FINALPACKAGE=1
+          cd main
+          sed -i '' "s/^BUNDLE_ID .*/BUNDLE_ID = ${{ inputs.bundle_id }}/" Makefile || echo "BUNDLE_ID = ${{ inputs.bundle_id }}" >> Makefile
+          sed -i '' "s/^DISPLAY_NAME .*/DISPLAY_NAME = ${{ inputs.app_name }}/" Makefile || echo "DISPLAY_NAME = ${{ inputs.app_name }}" >> Makefile
+          sed -i '' "s/^export TARGET .*/export TARGET = iphone:clang:${{ inputs.sdk_version }}:15.0/" Makefile || echo "export TARGET = iphone:clang:${{ inputs.sdk_version }}:15.0" >> Makefile
+          make package THEOS_PACKAGE_SCHEME=rootless IPA=Payload/YouTube.app FINALPACKAGE=1 YTUHD_ENABLED=${{ inputs.ytuhd && '1' || '0' }} SPONSORBLOCK_ENABLED=${{ inputs.sponsorblock && '1' || '0' }}
           echo "package=$(ls -t packages | head -n1)" >> $GITHUB_OUTPUT
            
        env:
           THEOS: ${{ github.workspace }}/theos
           UYOU_VERSION: ${{ inputs.uyou_version }}
-          YTUHD_FLAG: ${{ if(inputs.ytuhd, '1', '0') }}
-          SPONSORBLOCK_FLAG: ${{ if(inputs.sponsorblock, '1', '0') }}
 
       - name: Clone Open in YouTube (Safari Extension)
         run: |
